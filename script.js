@@ -1,91 +1,134 @@
-const itemForm = document.getElementById('item-form');
-const itemInput = document.getElementById('item-input');
-const itemList = document.getElementById('item-list');
-const clearAll = document.getElementById('clear');
-const itemFilter = document.getElementById('filter');
+const itemForm = document.getElementById('item-form')
+const itemInput = document.getElementById('item-input')
+const itemList = document.getElementById('item-list')
+const clearAll = document.getElementById('clear')
+const itemFilter = document.getElementById('filter')
 
-const createListItem = (item) => {
-  const li = document.createElement('li');
-  const btn = document.createElement('button');
-  const i = document.createElement('i');
+const createListItem = item => {
+	const li = document.createElement('li')
+	const btn = document.createElement('button')
+	const i = document.createElement('i')
 
-  li.appendChild(document.createTextNode(item));
-  btn.className = 'remove-item btn-link text-red';
-  i.className = 'fa-solid fa-xmark';
+	li.appendChild(document.createTextNode(item))
+	btn.className = 'remove-item btn-link text-red'
+	i.className = 'fa-solid fa-xmark'
 
-  btn.appendChild(i);
-  li.appendChild(btn);
-  itemList.appendChild(li);
+	btn.appendChild(i)
+	li.appendChild(btn)
+	itemList.appendChild(li)
 }
 
-const addItem = (e) => {
-  e.preventDefault();
+const displayItems = () => {
+	const itemsFromStorage = getItemsFromStorage();
 
-  const newItem = itemInput.value;
+	itemsFromStorage.forEach((item) => addItemToDOM(item));
 
-  // Validate Input
-  if(newItem === ''){
-    alert('Please add an item.');
-    return;
-  }
-
-  createListItem(newItem);
-
-  checkUI();
-
-  itemInput.value = '';
+	checkUI();
 }
 
-const removeItem = (e) => {
-  if(e.target.parentElement.classList.contains('remove-item')) {
-    if (confirm('Are you sure?')) {
-      e.target.parentElement.parentElement.remove();
+const onAddItemSubmit = e => {
+	e.preventDefault()
 
-      checkUI();
-    }
-  }
+	const newItem = itemInput.value
+
+	// Validate Input
+	if (newItem === '') {
+		alert('Please add an item.')
+		return
+	}
+
+	// Create item DOM element
+	addItemToDOM(newItem)
+
+	// Add item to local storage
+	addItemToStorage(newItem)
+
+	checkUI()
+
+	itemInput.value = ''
+}
+
+const addItemToDOM = item => {
+	createListItem(item)
+}
+
+const addItemToStorage = item => {
+	const itemsFromStorage = getItemsFromStorage();
+
+	// Add new item to array
+	itemsFromStorage.push(item)
+
+	// Convert to JSON string and set to local storage
+	localStorage.setItem('items', JSON.stringify(itemsFromStorage))
+}
+
+const getItemsFromStorage = () => {
+	let itemsFromStorage;
+
+	if (localStorage.getItem('items') === null) {
+		itemsFromStorage = []
+	} else {
+		itemsFromStorage = JSON.parse(localStorage.getItem('items'))
+	}
+
+	return itemsFromStorage;
+}
+
+const removeItem = e => {
+	if (e.target.parentElement.classList.contains('remove-item')) {
+		if (confirm('Are you sure?')) {
+			e.target.parentElement.parentElement.remove()
+
+			checkUI()
+		}
+	}
 }
 
 const clearAllItems = () => {
-  while (itemList.firstChild) {
-    itemList.removeChild(itemList.firstChild);
-  }
+	while (itemList.firstChild) {
+		itemList.removeChild(itemList.firstChild)
+	}
 
-  checkUI();
+	checkUI()
 }
 
-const filterItems = (e) => {
-  const items = itemList.querySelectorAll('li');
-  const text = e.target.value.toLowerCase();
+const filterItems = e => {
+	const items = itemList.querySelectorAll('li')
+	const text = e.target.value.toLowerCase()
 
-  items.forEach((item) => {
-    const itemName = item.firstChild.textContent.toLowerCase();
+	items.forEach(item => {
+		const itemName = item.firstChild.textContent.toLowerCase()
 
-    if(itemName.indexOf(text) != -1) {
-      item.style.display = 'flex';
-    } else {
-      item.style.display = 'none';
-    }
-  })
+		if (itemName.indexOf(text) != -1) {
+			item.style.display = 'flex'
+		} else {
+			item.style.display = 'none'
+		}
+	})
 }
 
 const checkUI = () => {
-  const items = itemList.querySelectorAll('li');
+	const items = itemList.querySelectorAll('li')
 
-  if(items.length === 0) {
-    clearAll.style.display = 'none';
-    itemFilter.style.display = 'none';
-  } else {
-    clearAll.style.display = 'block';
-    itemFilter.style.display = 'block';
-  }
+	if (items.length === 0) {
+		clearAll.style.display = 'none'
+		itemFilter.style.display = 'none'
+	} else {
+		clearAll.style.display = 'block'
+		itemFilter.style.display = 'block'
+	}
 }
 
+/* Initialize App */
+const init = () => {
+	/* Event Listeners */
+	itemForm.addEventListener('submit', onAddItemSubmit)
+	itemList.addEventListener('click', removeItem)
+	clearAll.addEventListener('click', clearAllItems)
+	itemFilter.addEventListener('input', filterItems)
+	document.addEventListener('DOMContentLoaded', displayItems)
 
-/* Event Listeners */
-itemForm.addEventListener('submit', addItem);
-itemList.addEventListener('click', removeItem);
-clearAll.addEventListener('click', clearAllItems);
-itemFilter.addEventListener('input', filterItems);
+	checkUI()
+}
 
-checkUI();
+init();
